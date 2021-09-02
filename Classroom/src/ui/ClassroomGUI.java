@@ -2,10 +2,13 @@ package ui;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.time.LocalDate;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -22,6 +25,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -33,14 +37,13 @@ import model.Browser;
 public class ClassroomGUI {
 
 	private Stage mainStage;
-	
 
 	
     @FXML
     private TextField txtUsername;
 
     @FXML
-    private TextField txtPassword;
+    private PasswordField txtPassword;
     
     @FXML
     private TableView<UserAccount> tableView;
@@ -65,18 +68,24 @@ public class ClassroomGUI {
 
     @FXML
     private TextField txtUsername2;
+    
+    @FXML
+    private PasswordField txtPassword2;
 
     @FXML
     private TextField urlPhoto;
-
+    
     @FXML
     private RadioButton rbMale;
 
     @FXML
     private RadioButton rbFemale;
-
+    
     @FXML
     private RadioButton rbOther;
+
+    @FXML
+    private ToggleGroup rbGender;
 
     @FXML
     private CheckBox cbSoftware;
@@ -90,11 +99,6 @@ public class ClassroomGUI {
     @FXML
     private ComboBox<Browser> cbBrowser;
     
-    @FXML
-    private PasswordField txtPassword2;
-    
-    private ToggleGroup group ;
-    
     private ObservableList<UserAccount> observableList;
     
     @FXML
@@ -104,7 +108,6 @@ public class ClassroomGUI {
     
     public ClassroomGUI() {
     	classroom=new Classroom();
-    	group = new ToggleGroup();
     }
 
     public Stage getMainStage() {
@@ -120,14 +123,20 @@ public class ClassroomGUI {
 		FXMLLoader fxmlLoader= new FXMLLoader(getClass().getResource("UserList.fxml"));
 		String username=txtUsername.getText();
 		String password=txtPassword.getText();
-		classroom.verification(username, password);
-    	fxmlLoader.setController(this);
-    	Parent root= fxmlLoader.load();
-    	Scene scene= new Scene(root);
-    	
-    	mainStage.setScene(scene);
-    	mainStage.show();
-    	itializeTableView();
+		boolean conti=classroom.verification(username, password);
+		if(conti) {
+			fxmlLoader.setController(this);
+			imageView=new ImageView(classroom.putImage(username));
+			Parent root= fxmlLoader.load();
+			Scene scene= new Scene(root);
+			mainStage.setScene(scene);
+			Image imagen=new Image(classroom.putImage(username));
+			imageView.setImage(imagen);;
+			mainStage.show();
+			itializeTableView();
+			
+			
+		}
     }
 
     @FXML
@@ -139,8 +148,9 @@ public class ClassroomGUI {
     	
     	mainStage.setScene(scene);
     	mainStage.show();
+    	
     	showOptions();
-    	selectGender();
+    	
     }
     
     @FXML
@@ -154,67 +164,90 @@ public class ClassroomGUI {
     	mainStage.show();
     }
     
+    private String br;
     
     @FXML
     public void createAcount(ActionEvent event) {
-    	Alert alert = new Alert(AlertType.INFORMATION);
+    	Alert alert = new Alert(null);
     	String username=txtUsername2.getText();
     	String password=txtPassword2.getText();
     	String photo=urlPhoto.getText();
-    	String birthDay=birthday.getPromptText();
-    	String career=selectedCareer();
-    	
-    	boolean conti=classroom.add(new UserAccount(username, password, photo, "Male", career,birthDay,cbBrowser.getValue()));
-    	if(conti) {
-    		alert.setTitle("Confirmation Dialog");
-			alert.setHeaderText(null);
-			alert.setContentText("The contact has added successful");
+    	LocalDate birthDay=birthday.getValue();
+    	String career=selectCareer();
+    	Gender gender=selectGender();
+
+    	if(username==null|| password==null|| photo==null|| gender==null|| career==null|| birthDay==null|| br==null) {
+    		alert.setAlertType(AlertType.ERROR);
+    		alert.setTitle("Error Dialog");
+			alert.setHeaderText("You have not complete the register");
+			alert.setContentText("You have to complete all the information");
 			alert.showAndWait();
     	}
     	else {
-    		alert.setAlertType(AlertType.WARNING);
-			alert.setHeaderText("It seems there is a little mistake");
-			alert.setContentText("The email it's already exist");
-			alert.showAndWait();
+    		boolean conti=classroom.add(new UserAccount(username, password, photo, gender, career,birthDay,br));
+    		if(conti) {
+    			alert.setAlertType(AlertType.INFORMATION);
+    			alert.setTitle("Confirmation Dialog");
+    			alert.setHeaderText("Successful action");
+    			alert.setContentText("The contact has added successful");
+    			alert.showAndWait();
+    		}
+    		else {
+    			alert.setAlertType(AlertType.WARNING);
+    			alert.setHeaderText("It seems there is a little mistake");
+    			alert.setContentText("The username it's already exist");
+    			alert.showAndWait();
+    		}
     	}
     }
     
+    public Gender selectGender() {
+    	if(rbMale.isSelected()) {
+    		return Gender.MALE;
+    	}
+    	else if(rbFemale.isSelected()) {
+    		return Gender.FEMALE;
+    	}
+    	else {
+    		return Gender.OTHER;
+    	}
+    }
+
+    
+    public String selectCareer() {
+    	String selectIt="";
+    	if(cbSoftware.isSelected()) {
+    		selectIt+="Software \n";
+    	}
+    	if(cbTelematic.isSelected()) {
+    		selectIt+="Telematic \n";
+    	}
+    	if(cbIndustrial.isSelected()) {
+    		selectIt+="Industrial";
+    	}
+    	return selectIt;
+    }
+    
+    
     @FXML
-    public void searchUrl(ActionEvent event) {
+    public void searchUrl(ActionEvent event) throws MalformedURLException {
     	FileChooser fileChooser = new FileChooser();
     	fileChooser.setTitle("Open Resource File");
     	File selectedDirectory = fileChooser.showOpenDialog(mainStage);
-    	urlPhoto.setText(selectedDirectory.getAbsolutePath());
+    	urlPhoto.setText(selectedDirectory.toURI().toURL().toString());
     }	
     
-    public void selectGender() {
-    	
-    	rbMale.setToggleGroup(group);
-    	rbFemale.setToggleGroup(group);
-    	rbOther.setToggleGroup(group);
-    	rbOther.setSelected(true);
-    }
     
     public void showOptions() {
     	ObservableList<Browser> items = FXCollections.observableArrayList();
     	items.addAll(Browser.CHROME, Browser.EDGE,Browser.FIREFOX, Browser.OPERA);
     	cbBrowser.getItems().addAll(items);
+    	cbBrowser.setOnAction(new EventHandler<ActionEvent>() {     
+    		public void handle(ActionEvent e)  {    
+    			br=cbBrowser.getValue()+"";
+    		}       
+    	});
     }
-
-    public String selectedCareer() {
-    	String selection="";
-    	if(cbIndustrial.isPickOnBounds()) {
-    		selection=cbIndustrial.getText();
-    	}
-    	if(cbTelematic.isPickOnBounds()) {
-    		selection+=" "+cbTelematic.getText();
-    	}
-    	if(cbSoftware.isPickOnBounds()) {
-    		selection+=" "+cbSoftware.getText();
-    	}
-    	return selection;
-    }
-  
 
     public void itializeTableView() {
     	observableList= FXCollections.observableArrayList(classroom.getUser());

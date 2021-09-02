@@ -1,23 +1,25 @@
 package model;
 
+import java.time.LocalDate;
+
 public class UserAccount {
 	
 	private String userName;
 	private String passWord;
 	private String photoURL;
-	private String birthday;
+	private LocalDate birthday;
 	private Gender gender;
 	private String career;
 	private Browser browser;
 	
-	public UserAccount(String userName, String passWord, String photoURL, String gender, String career,String birthday,Browser browser) {
+	public UserAccount(String userName, String passWord, String photoURL, Gender gender, String career,LocalDate birthday,String browser) {
 		this.userName=userName;
 		this.passWord=passWord;
 		this.photoURL=photoURL;
 		setGender(gender);
 		this.career=career;
 		this.birthday=birthday;
-		this.browser=browser;
+		setBrowser(browser);
 	}
 
 	public String getUserName() {
@@ -48,34 +50,35 @@ public class UserAccount {
 		return gender;
 	}
 
-	public void setGender(String gender) {
-		switch(gender){
-			case "Male" : this.gender=Gender.MALE;
-			break;
-			
-			case "Female" : this.gender=Gender.FEMALE;
-			break;
-			
-			case "Other" : this.gender=Gender.OTHER;
-			break;
-		}
+	public void setGender(Gender gender) {
+		this.gender = gender;
 	}
-
+	
 	public Browser getBrowser() {
 		return browser;
 	}
 
-	public void setBrowser(Browser browser) {
-		this.browser = browser;
+	public void setBrowser(String browser) {
+		switch (browser) {
+
+		case "CHROME":
+			this.browser = Browser.CHROME;
+			break;
+
+		case "EDGE":
+			this.browser =Browser.EDGE;
+			break;
+
+		case "FIREFOX":
+			this.browser = Browser.FIREFOX;
+			break;
+
+		case "OPERA":
+			this.browser =Browser.OPERA;
+			break;
+		}
 	}
 
-	public String getBirthday() {
-		return birthday;
-	}
-
-	public void setBirthday(String birthday) {
-		this.birthday = birthday;
-	}
 
 	public String getCareer() {
 		return career;
@@ -83,6 +86,10 @@ public class UserAccount {
 
 	public void setCareer(String career) {
 		this.career = career;
+	}
+
+	public LocalDate getBirthday() {
+		return birthday;
 	}
 	
 }
