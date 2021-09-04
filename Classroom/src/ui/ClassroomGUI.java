@@ -120,6 +120,7 @@ public class ClassroomGUI {
 
 	@FXML
     public void logIn(ActionEvent event) throws IOException{
+		Alert alert = new Alert(null);
 		FXMLLoader fxmlLoader= new FXMLLoader(getClass().getResource("UserList.fxml"));
 		String username=txtUsername.getText();
 		String password=txtPassword.getText();
@@ -134,8 +135,13 @@ public class ClassroomGUI {
 			imageView.setImage(imagen);;
 			mainStage.show();
 			itializeTableView();
-			
-			
+		}
+		else {
+			alert.setAlertType(AlertType.ERROR);
+    		alert.setTitle("Error Login");
+			alert.setHeaderText("You can't login");
+			alert.setContentText("Your username or password doesn't exist");
+			alert.showAndWait();
 		}
     }
 

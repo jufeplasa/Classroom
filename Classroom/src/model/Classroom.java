@@ -44,6 +44,11 @@ public class Classroom {
 	}
 
 	public boolean add(UserAccount newUser) {
+		for(int i=0;i<user.size();i++) {
+			if(newUser.getUserName().equalsIgnoreCase(user.get(i).getUserName())){
+				return false;
+			}
+		}
 		
 		if(user.add(newUser)) {
 			
